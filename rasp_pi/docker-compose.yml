@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  pi-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PUMP_API_URL=http://pump-master:8001
+    depends_on:
+      - pump-master
+    restart: unless-stopped
+    networks:
+      - verdant-network
+
+  pump-master:
+    build:
+      context: ./water
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    privileged: true  # Needed for GPIO access
+    networks:
+      - verdant-network
+
+  # Add sensor container here when it's ready
+  # sensor:
+  #   build:
+  #     context: ./sensor
+  #     dockerfile: Dockerfile
+  #   restart: unless-stopped
+  #   privileged: true  # Needed for sensor access
+  #   networks:
+  #     - verdant-network
+
+networks:
+  verdant-network:
+    driver: bridge
