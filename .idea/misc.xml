@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="Black">
-    <option name="sdkName" value="Python 3.12" />
-  </component>
-<<<<<<< HEAD
-  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.11.12 Docker (control_board_dev)" project-jdk-type="Python SDK" />
-=======
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12" project-jdk-type="Python SDK" />
->>>>>>> 70735c5 (moved files)
 </project>
