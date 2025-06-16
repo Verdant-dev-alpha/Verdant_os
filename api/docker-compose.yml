@@ -1,0 +1,73 @@
+version: "3.8"
+
+# This docker-compose file is configured to use Google Cloud SQL Auth Proxy
+# to connect to a Google Cloud SQL database instance.
+# For cloud deployment, ensure these environment variables are set:
+# - GOOGLE_CLOUD_PROJECT: Your Google Cloud project ID
+# - INSTANCE_CONNECTION_NAME: Your Cloud SQL instance connection name (project:region:instance)
+
+services:
+  # Cloud SQL Auth Proxy container to securely connect to Google Cloud SQL
+  cloud-sql-proxy:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
+    container_name: cloud-sql-proxy
+    restart: always
+    command:
+      - "--address=0.0.0.0"
+      - "--port=5432"
+      # Use environment variable for instance connection name
+      - "--instance=${INSTANCE_CONNECTION_NAME}"
+    ports:
+      - "5432:5432"
+    volumes:
+      # You need to create a service account key file and save it as gcp-credentials.json
+      # in the same directory as this docker-compose.yml file
+      # See: https://cloud.google.com/sql/docs/postgres/connect-admin-proxy#create-service-account
+      - ./gcp-credentials.json:/credentials.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials.json
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - verdant-network
+
+  # API service that connects to the database through the Cloud SQL Auth Proxy
+  api:
+    build:
+      context: ./main
+      dockerfile: Dockerfile
+    container_name: verdant-api
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the Google Cloud credentials file for Secret Manager authentication
+      - ./gcp-credentials.json:/app/gcp-credentials.json
+    environment:
+      # Using Google Cloud Secret Manager for database credentials
+      # All database credentials are retrieved from Secret Manager
+      - DB_HOST=cloud-sql-proxy:5432
+      # Pass the instance connection name for direct socket connection in cloud environments
+      - INSTANCE_CONNECTION_NAME=${INSTANCE_CONNECTION_NAME}
+      # Set the Google Cloud project ID for Secret Manager from environment variable
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      # Set the path to the Google Cloud credentials file
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-credentials.json
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      cloud-sql-proxy:
+        condition: service_healthy
+    networks:
+      - verdant-network
+
+networks:
+  verdant-network:
+    driver: bridge

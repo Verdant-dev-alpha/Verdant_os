@@ -1,0 +1,5 @@
+adafruit-blinka
+adafruit-circuitpython-mcp230xx
+fastapi
+uvicorn
+requests

@@ -1,0 +1,6 @@
+uvicorn
+fastapi
+requests
+"google-cloud-sql-python-connector[pg8000]"
+sqlalchemy
+google-cloud-secret-manager
