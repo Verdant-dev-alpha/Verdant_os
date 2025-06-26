@@ -32,7 +32,7 @@ The services are containerized using Docker and orchestrated using Docker Compos
 To build and run the services:
 
 ```bash
-cd rasp_pi
+cd edge
 docker-compose up -d
 ```
 

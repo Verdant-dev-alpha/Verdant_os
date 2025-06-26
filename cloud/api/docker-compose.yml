@@ -37,7 +37,7 @@ services:
   # API service that connects to the database through the Cloud SQL Auth Proxy
   api:
     build:
-      context: ./main
+      context: main
       dockerfile: Dockerfile
     container_name: verdant-api
     restart: always
